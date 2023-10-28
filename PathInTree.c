@@ -4,74 +4,61 @@
 
 #define MAX_NODES 10001
 
-struct Node {
+typedef struct Node {
     int value;
     struct Node *next;
-};
+} Node;
 
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-//Gabriel Maciel de Morais - 2112082002
-void addEdge(struct Node *adj[], int u, int v) {
-    struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
+Node *adj[MAX_NODES];
+int visited[MAX_NODES];
+int maxDepth1, maxDepth2;
+
+void addEdge(int u, int v) {
+    Node *newNode = (Node *)malloc(sizeof(Node));
     newNode->value = v;
     newNode->next = adj[u];
     adj[u] = newNode;
 }
-//Gabriel Maciel de Morais - 2112082002
-int dfs(int u, struct Node *adj[], int visited[]) {
-    visited[u] = 1;
-    struct Node *ptr = adj[u];
-    int max_depth1 = 0, max_depth2 = 0;
 
-    while (ptr != NULL) {
-        if (!visited[ptr->value]) {
-            int depth = dfs(ptr->value, adj, visited) + 1;
-            if (depth > max_depth1) {
-                max_depth2 = max_depth1;
-                max_depth1 = depth;
-            } else if (depth > max_depth2) {
-                max_depth2 = depth;
-            }
-        }
-        ptr = ptr->next;
+void dfs(int node, int depth) {
+    visited[node] = 1;
+    if (depth > maxDepth1) {
+        maxDepth1 = depth;
+        maxDepth2 = node;
     }
-
-    return max_depth1 + max_depth2;
+    for (Node *neighbor = adj[node]; neighbor != NULL; neighbor = neighbor->next) {
+        if (!visited[neighbor->value]) {
+            dfs(neighbor->value, depth + 1);
+        }
+    }
 }
-//Gabriel Maciel de Morais - 2112082002
+
 int main() {
     int numNodes;
     scanf("%d", &numNodes);
 
-    struct Node *adj[MAX_NODES];
-    int i;
-    for (i = 1; i <= numNodes; i++) {
+    for (int i = 1; i <= numNodes; i++) {
         adj[i] = NULL;
+        visited[i] = 0;
     }
 
-    for ( i = 0; i < numNodes - 1; i++) {
+    for (int i = 0; i < numNodes - 1; i++) {
         int u, v;
         scanf("%d %d", &u, &v);
-        addEdge(adj, u, v);
-        addEdge(adj, v, u);
+        addEdge(u, v);
+        addEdge(v, u);
     }
 
-    int *visited = (int *)calloc((numNodes + 1), sizeof(int));
-    int ans = dfs(1, adj, visited);
+    maxDepth1 = -1;
+    dfs(1, 0);
 
-    printf("%d\n", ans);
+    for (int i = 1; i <= numNodes; i++)
+        visited[i] = 0;
 
-    free(visited);
-    for (i = 1; i <= numNodes; i++) {
-        struct Node *ptr = adj[i];
-        while (ptr != NULL) {
-            struct Node *temp = ptr;
-            ptr = ptr->next;
-            free(temp);
-        }
-    }
+    maxDepth1 = -1;
+    dfs(maxDepth2, 0);
+
+    printf("%d\n", maxDepth1);
 
     return 0;
 }
